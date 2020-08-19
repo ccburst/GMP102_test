@@ -22,31 +22,35 @@ double fp[9];
 int temp=0;
 double pa=0;
 
-void REG_write(int a,int b){
+// write value b to register a
+void REG_write(int a,int b){ 
   Wire.beginTransmission(Addr);
-  Wire.write(a);  //  選擇暫存器
-  Wire.write(b);  //  寫入值
+  Wire.write(a);  
+  Wire.write(b); 
   Wire.endTransmission();  
 }
 
-int REG_read1(int a){
+//return value from register a
+int REG_read1(int a){ 
   int data1;
   Wire.beginTransmission(Addr);
-  Wire.write(a);  //  選擇暫存器
+  Wire.write(a);  
   Wire.endTransmission(0);  
-  Wire.requestFrom(Addr, 1); //request 1 byte
-  data1 = Wire.read(); //read data
+  Wire.requestFrom(Addr, 1); 
+  data1 = Wire.read(); 
   return data1;
 }
 
-void calisave(void){  //Read 18-byte from AAh to BBh and save them
+// Read 18-byte from AAh to BBh and save to cali[]
+void calisave(void){  
   int i;
   for(i=0;i<18;i++){
     cali[i]=REG_read1(i+0xAA);
-    Serial.print(i+0xAA,HEX);Serial.print("h= ");Serial.println(cali[i],HEX);
   }
 }
 
+
+// Get the raw pressure and save as rp
 void Pforced(void){
   rp=0L;
   REG_write(0xA5,0x02);
@@ -61,18 +65,20 @@ void Pforced(void){
   rp=(rp<<8)>>8;
 }
 
+// Get the calibrated temperature and save as temp
 void Tforced(void){
   temp=0;
-  REG_write(0xA5,0x00); // set A5h = 0x00
+  REG_write(0xA5,0x00); 
   delay(50);
-  REG_write(0x30,0x08); // set 30h = 0x08
+  REG_write(0x30,0x08); 
   do{
     delay(50);
-  }while((REG_read1(0x02)&0x01)==0); //Check 02h[0] (DRDY) bit and wait until its value is set 
+  }while((REG_read1(0x02)&0x01)==0); 
   temp=REG_read1(0x09); 
-  temp=(temp<<8)|REG_read1(0x0A);  //Read the output from the temperature data registers (09h~0Ah). 
+  temp=(temp<<8)|REG_read1(0x0A);  
 }
 
+// Get the parameters : fp[0]~ fp[8]
 void get_fp(void){
   int k;
   int comp;
@@ -85,6 +91,7 @@ void get_fp(void){
   } 
 }
 
+// soft_reset
 void rinit(void){
   REG_write(0x00,0x24);  //Set RESET register (00h) to 0x24
   delay(500);
@@ -102,19 +109,20 @@ void setup()
   Wire.begin();
   Serial.begin(9600);
   Serial.println("Serial_begin");
-  rinit();    //  soft_reset
+  rinit();   
   Serial.println("init_done");
   delay(100);
 }
-
 void loop()
 {
   Tforced();
   delay(100);
   Pforced();
   delay(100);
-  get_fp(); //Get the parameters : fParam[0]~ fParam[8]
+  get_fp(); 
   delay(100);
+  
+  // Calculate temperature compensated pressure
   pa= \
     fp[0] + \
     fp[1]*temp + \
