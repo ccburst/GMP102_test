@@ -134,6 +134,13 @@ void loop()
     fp[7]*temp*rp*rp + \
     fp[8]*temp*temp*rp*rp;
   float t =temp;
-  Serial.println();Serial.print("temp=");Serial.println(t/256);
-  Serial.print("pre=");Serial.println(pa);Serial.println();Serial.println("-----");
+  float a1=44307.694;
+  float a2=0.190284;
+  float a3=8.33;
+  float high=a1*(1-pow((pa/101325),a2));
+  Serial.println();Serial.print("temperature=");Serial.println(t/256);
+  Serial.print("pressure=");Serial.println(pa);
+  Serial.print("heigt(Method 1)=");Serial.println(high);
+  Serial.print("heigt(Method 2)=");Serial.println(a3*(pa-101325));
+  Serial.println();Serial.println("-----");
 }
